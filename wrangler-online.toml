@@ -2,6 +2,10 @@ name = "animal-cup-online"
 main = "cloudflare/online-worker.js"
 compatibility_date = "2026-04-07"
 
+routes = [
+  { pattern = "animal-cup-online.linyuan.uk", custom_domain = true }
+]
+
 [[durable_objects.bindings]]
 name = "ONLINE_ROOMS"
 class_name = "OnlineRoom"
@@ -21,4 +25,4 @@ namespace_id = "1002"
 simple = { limit = 60, period = 60 }
 
 [vars]
-ALLOWED_ORIGINS = "https://animal-cup.animal-world-cup.workers.dev,http://localhost:13000,http://127.0.0.1:13000"
+ALLOWED_ORIGINS = "https://animal-cup.linyuan.uk,http://localhost:13000,http://127.0.0.1:13000"

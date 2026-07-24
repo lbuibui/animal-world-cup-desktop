@@ -104,7 +104,7 @@ export default function OnlineRoomClient({ createMode, initialRoom, initialHost,
         onStatus(next, detail) {
           if (cancelled) return;
           if (next === "connecting") setStatus("connecting");
-          if (next === "error") {
+          if (next === "error" || next === "closed") {
             setError(detail || "online-error");
             setStatus("error");
           }
@@ -158,8 +158,11 @@ export default function OnlineRoomClient({ createMode, initialRoom, initialHost,
           return;
         }
 
+        if (!initialRoom || normalizeRoomCode(initialRoom).length !== 6) {
+          router.replace("/");
+          return;
+        }
         const code = normalizeRoomCode(initialRoom);
-        if (code.length !== 6) throw new Error("room");
         roomRef.current = code;
         setRoom(code);
         const nextRole = initialHost ? "host" : "screen";

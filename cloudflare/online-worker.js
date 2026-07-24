@@ -84,7 +84,7 @@ export default {
         const room = randomCode();
         const hostToken = randomToken();
         const padInvites = [randomToken(), randomToken()];
-        const id = env.ONLINE_ROOMS.idFromName(room);
+        const id = env.ONLINE_ROOMS.idFromName(room, { locationHint: "apac" });
         const response = await env.ONLINE_ROOMS.get(id).fetch("https://room.internal/create", {
           method: "POST",
           body: JSON.stringify({ room, hostToken, padInvites, config }),
@@ -105,7 +105,7 @@ export default {
         const limited = await env.CONNECT_RATE_LIMITER.limit({ key: `${ip}:${room}` });
         if (!limited.success) return json({ ok: false, reason: "rate-limit" }, 429, origin);
       }
-      const id = env.ONLINE_ROOMS.idFromName(room);
+      const id = env.ONLINE_ROOMS.idFromName(room, { locationHint: "apac" });
       return env.ONLINE_ROOMS.get(id).fetch(request);
     }
 
@@ -260,17 +260,19 @@ export class OnlineRoom {
       return { attachment: { role: "screen", token: nextToken, lastSeq: -1 }, token: nextToken };
     }
 
-    if (role === "pad" && room.config.mode === "controllers") {
+    if (role === "pad" && (room.config.mode === "controllers" || room.config.mode === "direct")) {
       let slot = Number(msg.slot);
       if (slot !== 0 && slot !== 1) slot = this.find("pad", 0) ? 1 : 0;
+      if (room.config.mode === "direct") slot = 1;
       const old = this.find("pad", slot);
       const stored = room.padTokens[slot];
       const invited = String(msg.invite || "") === room.padInviteTokens[slot];
+      const isDirect = room.config.mode === "direct";
       if (old && (!supplied || supplied !== stored)) return { error: "slot-full" };
       if (!old && stored && now < room.padReservedUntil[slot] && supplied !== stored) {
         return { error: "slot-reserved" };
       }
-      if ((!supplied || supplied !== stored) && !invited) return { error: "slot-invite" };
+      if (!isDirect && (!supplied || supplied !== stored) && !invited) return { error: "slot-invite" };
       const nextToken = supplied && supplied === stored ? supplied : randomToken();
       room.padTokens[slot] = nextToken;
       room.padReservedUntil[slot] = 0;

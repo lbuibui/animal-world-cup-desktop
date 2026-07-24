@@ -328,6 +328,14 @@ export default function OnlineMatchBridge() {
       window.addEventListener("ab-match-started", startedHandler);
       if (window.__matchGame?.states?.current) startRemoteRenderer();
       if (mode === "direct") {
+        // Separate WS for input — avoids bidirectional TCP congestion with frame stream
+        const padClient = createOnlineClient({
+          room,
+          hello: () => ({ t: "hello", role: "pad", slot: 1 }),
+          onStatus() {},
+          onMessage() {},
+        });
+        padClientRef.current = padClient;
         removeKeyboard = installKeyboard(directInput);
         inputTimer = setInterval(() => {
           const touch = inputFor(0);
@@ -342,7 +350,7 @@ export default function OnlineMatchBridge() {
             switchPlayer: !!(touch.switchPlayer || directInput.switchPlayer),
             tackle: !!(touch.tackle || directInput.tackle),
           };
-          client.send({ t: "input", seq: ++sequence, d: packet });
+          padClient.send({ t: "input", seq: ++sequence, d: packet });
           touch.pass = touch.lob = touch.switchPlayer = touch.tackle = false;
           directInput.pass = directInput.lob = directInput.switchPlayer = directInput.tackle = false;
         }, 33);
@@ -367,6 +375,7 @@ export default function OnlineMatchBridge() {
 
     return () => {
       client.close();
+      if (padClientRef.current) padClientRef.current.close();
       clearInterval(frameTimer);
       clearInterval(statsTimer);
       clearInterval(inputTimer);

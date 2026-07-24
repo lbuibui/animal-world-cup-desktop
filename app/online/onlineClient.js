@@ -9,8 +9,10 @@ export function onlineServiceUrl() {
   if (typeof window === "undefined") return "";
   const host = window.location.hostname || "127.0.0.1";
   const local = host === "localhost" || host === "127.0.0.1" || /^10\.|^192\.168\.|^172\.(1[6-9]|2\d|3[01])\./.test(host);
+  // ponytail: avoid silent fallback to origin (which is the Next.js app, not the relay);
+  // return empty so the caller shows a clear "not configured" error instead of hanging.
   if (local) return `http://${host}:13002`;
-  return window.location.origin;
+  return "";
 }
 
 function socketUrl(room) {
@@ -25,11 +27,26 @@ function socketUrl(room) {
 export async function createOnlineRoom(config) {
   const base = onlineServiceUrl();
   if (!base) throw new Error("online-service-missing");
-  const response = await fetch(new URL("/create", base), {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ config }),
-  });
+  let controller;
+  let timer;
+  if (typeof AbortController !== "undefined") {
+    controller = new AbortController();
+    timer = setTimeout(() => controller.abort(), 15000);
+  }
+  let response;
+  try {
+    response = await fetch(new URL("/create", base), {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ config }),
+      signal: controller ? controller.signal : undefined,
+    });
+  } catch (err) {
+    if (timer) clearTimeout(timer);
+    if (controller && err.name === "AbortError") throw new Error("online-timeout");
+    throw new Error("online-unreachable");
+  }
+  if (timer) clearTimeout(timer);
   let data = null;
   try { data = await response.json(); } catch {}
   if (!response.ok || !data || !data.ok) throw new Error((data && data.reason) || `create-${response.status}`);

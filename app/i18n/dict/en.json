@@ -165,6 +165,8 @@
   "online.error.host-left": "The host left and the reconnect window expired.",
   "online.error.room-busy": "This room has too many pending connections. Try again shortly.",
   "online.error.rate-limit": "Too many connection attempts. Try again shortly.",
+  "online.error.online-unreachable": "Could not reach the online service. Check your network or try later.",
+  "online.error.online-timeout": "Online service timed out. Please try again.",
   "lan.title": "LAN Versus",
   "lan.sub": "One screen, two phones. Each player's phone is their controller.",
   "lan.scan": "Scan to join",
