@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "main": "electron/main.mjs",
   "scripts": {
     "dev": "rm -rf .next && next dev -p 13000",
     "lan": "node script/lan-server.mjs",
@@ -15,13 +16,18 @@
     "prebuild": "rm -rf .next",
     "build": "node script/stamp-sw-version.mjs && node script/safe-build.mjs",
     "build:worker": "rm -rf .next .open-next && node script/stamp-sw-version.mjs && opennextjs-cloudflare build",
-    "start": "next start -p 13000"
+    "start": "next start -p 13000",
+    "desktop": "electron .",
+    "desktop:build": "pnpm build && electron-builder",
+    "desktop:dir": "pnpm build && electron-builder --dir"
   },
   "dependencies": {
     "next": "15.5.19",
     "qrcode": "^1.5.4",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "electron-updater": "^6.3.9",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250109.0",
@@ -31,13 +37,46 @@
     "sharp": "^0.34.5",
     "typescript": "5.8.2",
     "wrangler": "^4.86.0",
-    "ws": "^8.18.0"
+    "electron": "^33.4.0",
+    "electron-builder": "^25.1.8"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "sharp",
-      "esbuild",
-      "workerd"
-    ]
+  "build": {
+    "appId": "ai.animalcup.desktop",
+    "productName": "Animal Cup",
+    "files": [
+      "electron",
+      "node_modules",
+      "package.json",
+      "next.config.mjs"
+    ],
+    "extraResources": [
+      { "from": ".next", "to": "app/.next" },
+      { "from": "public", "to": "app/public" },
+      { "from": "script", "to": "app/script" },
+      { "from": "online", "to": "app/online" }
+    ],
+    "directories": {
+      "output": "dist-electron"
+    },
+    "icon": "electron/icon.png",
+    "asar": false,
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.games",
+      "icon": "electron/icon.png"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "electron/icon.png"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "electron/icon.png"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "lbuibui",
+      "repo": "animal-world-cup-desktop"
+    }
   }
 }

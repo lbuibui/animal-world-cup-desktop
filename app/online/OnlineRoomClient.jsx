@@ -87,7 +87,8 @@ export default function OnlineRoomClient({ createMode, initialRoom, initialHost,
   }
 
   useEffect(() => {
-    setOrigin(window.location.origin);
+    const publicUrl = process.env.NEXT_PUBLIC_APP_URL || "";
+    setOrigin(publicUrl || window.location.origin);
   }, []);
 
   useEffect(() => {
@@ -193,7 +194,7 @@ export default function OnlineRoomClient({ createMode, initialRoom, initialHost,
     const slot = role === "host" ? 0 : 1;
     const invite = padInvites[slot];
     if (!invite) return setPadQr(null);
-    const url = `${window.location.origin}/online-pad?room=${room}&slot=${slot}&invite=${encodeURIComponent(invite)}`;
+    const url = `${origin}/online-pad?room=${room}&slot=${slot}&invite=${encodeURIComponent(invite)}`;
     QRCode.toDataURL(url, { width: 300, margin: 1, color: { dark: "#24461f", light: "#ffffff" } })
       .then(setPadQr)
       .catch(() => setPadQr(null));

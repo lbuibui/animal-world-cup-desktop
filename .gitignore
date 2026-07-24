@@ -18,6 +18,9 @@ lerna-debug.log*
 .open-next/
 .wrangler/
 
+# Electron build output
+dist-electron/
+
 # file-convention icons the HappySeeds platform removed (they broke the Next 15.5
 # build — the tab icon + favicon now come from layout metadata + app/manifest.js).
 # Ignored so a stray local copy can't be re-committed and re-conflict with the
