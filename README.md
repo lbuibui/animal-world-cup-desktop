@@ -2,11 +2,13 @@
 
 # 🐾 Animal Cup Desktop
 
-**AI 动物足球模拟器 · 桌面版**
+**AI 动物足球模拟器 · 桌面应用**
 
-从 8 支动物国家队中挑选你的队伍，排布阵型，观看或亲自操控 7v7 足球赛事，并通过局域网或公网与朋友对战。
+从 8 支动物国家队中挑选你的队伍，排布阵型，观看或亲自操控 7v7 足球赛事。
+支持单机、局域网对战、公网联机——安装即用，无需浏览器。
 
-Pick from 8 animal national teams, set your formation, watch or control a 7v7 match, and play with friends over LAN or the public internet.
+Pick from 8 animal national teams, set your formation, watch or control
+a 7v7 match. Solo, LAN, or online — install and play, no browser needed.
 
 [English](#english) · [中文](#中文)
 
@@ -26,13 +28,16 @@ Pick from 8 animal national teams, set your formation, watch or control a 7v7 ma
 
 ### 🎮 简介
 
-Animal Cup 灵感来自经典街机足球游戏。你可以从 8 支动物国家队中选择队伍、设置阵型，观看 AI 模拟比赛，也可以使用键盘、触屏或手机手柄亲自操控。
+Animal Cup 灵感来自经典街机足球游戏。从 8 支动物国家队中选择队伍、设置
+阵型和难度，AI 模拟 7v7 足球赛，或亲自上场操控一名球员。
 
-作为桌面应用，它开箱即用，无需浏览器、无需部署——安装后即可享受完整的单机、局域网、公网对战体验，并支持自动更新。
+桌面应用基于 Electron 构建，**双击安装，开箱即用**。应用启动时自动在后台
+运行 Next.js 生产服务器及局域网/公网中继服务，无需额外配置。
 
 ### 📦 下载安装
 
-从 [GitHub Releases](https://github.com/lbuibui/animal-world-cup-desktop/releases) 下载最新版本：
+[GitHub Releases](https://github.com/lbuibui/animal-world-cup-desktop/releases)
+提供最新版本：
 
 | 平台 | 安装包 |
 | --- | --- |
@@ -40,138 +45,144 @@ Animal Cup 灵感来自经典街机足球游戏。你可以从 8 支动物国家
 | **Windows** | `Animal-Cup-Setup-{version}.exe` |
 | **Linux** | `Animal-Cup-{version}.AppImage` |
 
-应用内置自动更新，安装后无需手动检查新版本。
+应用启动后每 4 小时自动检查更新（electron-updater + GitHub Releases），
+无需手动升级。
 
-### 🕹 四种游戏模式
+### 🕹 游戏模式
 
 | 模式 | 说明 |
 | --- | --- |
-| 本地单人 | AI 观战或键盘 / 触屏操控 |
-| 局域网对战 | 大屏运行比赛 + 手机扫码作为无线手柄 |
-| 公网联机 | 邀请制房间，双方直接操控或各自手机手柄 |
-| 手机手柄 | 局域网 / 公网模式下，手机浏览器扫码即连 |
+| **单人观战** | AI vs AI，坐享比赛 |
+| **单人操控** | 键盘/触屏操控一名球员，对抗 AI 队伍 |
+| **局域网对战** | 大屏运行比赛，手机扫码变身手柄，双人对战 |
+| **公网联机** | 6 位房间码邀请好友，支持双方直接操控或各自配对手机手柄 |
 
-### 🏗 架构
+### 🏗 桌面应用架构
 
 ```text
-┌─────────────────────────────────────────────────┐
-│                  Electron 桌面壳                  │
-│  ┌─────────────────────────────────────────────┐│
-│  │             Next.js 15 内嵌服务              ││
-│  │  Landing → Lobby → Match (Pixi.js 引擎)      ││
-│  │         Pad / OnlinePad (手机手柄)           ││
-│  ├─────────────────────────────────────────────┤│
-│  │  局域网中继 (ws)  │  公网中继 (本地开发)      ││
-│  └─────────────────────────────────────────────┘│
-│              无边框窗口 + 系统托盘                │
-└─────────────────────────────────────────────────┘
-                      │
-                      ▼ 公网生产环境
-┌─────────────────────────────────────────────────┐
-│  Cloudflare Workers + Durable Objects (房间服务)  │
-└─────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────┐
+│                  Electron 主进程                       │
+│  ┌──────────────────────────────────────────────────┐ │
+│  │         Next.js 15 生产服务器 (端口 13000)         │ │
+│  │  Landing → Lobby → Match (Pixi.js 比赛引擎)       │ │
+│  │         Pad / OnlinePad (手机手柄页面)             │ │
+│  ├──────────────────────────────────────────────────┤ │
+│  │  局域网中继 (ws, :13001)  │  公网中继 (:13002)     │ │
+│  └──────────────────────────────────────────────────┘ │
+│         无边框窗口 · 自定义标题栏 · 系统托盘             │
+│         electron-updater 自动更新 · GitHub Releases    │
+└──────────────────────────────────────────────────────┘
+                          │ 公网生产环境
+                          ▼
+┌──────────────────────────────────────────────────────┐
+│     Cloudflare Workers + Durable Objects (房间服务)    │
+└──────────────────────────────────────────────────────┘
 ```
 
-- **桌面端**：Electron 无边框窗口，内嵌 Next.js 生产服务器 + LAN/Online 中继进程，纯离线可用（单机 + 局域网）
-- **局域网**：主机浏览器运行比赛模拟，手机通过 WebSocket 中继发送输入
-- **公网**：房主浏览器运行唯一比赛模拟，对手接收 ~30 FPS 二进制帧；服务端负责房间管理、输入和帧中继。6 位邀请码 + 恢复令牌
+**启动流程**：Electron 主进程启动后，依次：
+1. 以生产模式启动 Next.js（内嵌 HTTP server）
+2. `fork` 局域网 WebSocket 中继进程（`script/lan-server.mjs`）
+3. `fork` 公网房间中继进程（`script/online-server.mjs`）
+4. 轮询 `/api/health` 等待服务就绪
+5. 创建无边框窗口，加载 `http://localhost:13000`
+
+**窗口特性**：
+- 无边框窗口 + 自定义标题栏（`preload.mjs` 注入，适配 macOS/Windows）
+- macOS 保留红绿灯按钮；Windows 自绘最小化/最大化/关闭
+- 系统托盘：显示/退出
+- macOS 关闭窗口不退出应用（符合平台惯例）
 
 ### 🚀 技术栈
 
 | 层级 | 技术 |
 | --- | --- |
-| 桌面壳 | Electron 33 + electron-builder + electron-updater |
-| 前端 | Next.js 15（App Router）+ React 19 |
-| 比赛引擎 | 预构建 Pixi.js 运行时（`public/match-runtime-min/`） |
-| 多人对战 | 主机权威架构 — WebSocket 中继 (`ws`) + 公网帧同步 |
-| 公网服务 | Cloudflare Workers + Durable Objects |
-| 测试 | Playwright（E2E）+ 命令行协议验证 |
-| 国际化 | 内置多语言（`app/i18n/`） |
+| 桌面壳 | Electron 33 · electron-builder · electron-updater |
+| 前端 | Next.js 15 (App Router) · React 19 |
+| 比赛引擎 | Pixi.js 预编译运行时 (`public/match-runtime-min/`) |
+| 多人对战 | 主机权威架构 — WebSocket (`ws`) 中继 + 公网二进制帧同步 (~30 FPS) |
+| 公网服务 | Cloudflare Workers · Durable Objects |
+| 构建 | pnpm · CI (GitHub Actions) |
+| 测试 | Playwright (E2E) + 命令行协议验证 |
+| 国际化 | 内置多语言 (`app/i18n/`) |
 | 音频 | ElevenLabs 动物音效 |
 
 ### 📂 项目结构
 
 ```text
-app/                     # Next.js App Router
-├── api/health/          # 健康检查
-├── audio/               # 音效资源和 SoundBank
-├── data/                # 队伍、球员、阵型
-├── i18n/                # 多语言文案
-├── lan/                 # 局域网对战
-├── lobby/               # 大厅（选队、阵型、队服）
-├── match/               # 比赛页面（Pixi、触控、事件、特效）
-├── online/              # 公网房间 UI + 协议 + 帧编解码
-├── online-pad/          # 公网手机手柄入口
-├── pad/                 # 局域网手机手柄
-├── ui/                  # 通用 UI 组件
-├── GameClient.jsx       # 游戏引擎加载器
-├── Landing.jsx          # 落地页
-└── layout.jsx           # 全局布局
 electron/
-├── main.mjs             # 主进程（窗口 + 托盘 + 内嵌服务）
-├── preload.mjs          # 预加载脚本
-└── updater.mjs          # 自动更新
+├── main.mjs             # 主进程：窗口管理、内嵌服务启动、托盘、IPC
+├── preload.mjs          # 预加载：注入自定义标题栏、窗口控制 API
+└── updater.mjs          # 自动更新：检查/下载/安装
+app/                     # Next.js App Router
+├── page.jsx             # 入口 → Landing
+├── Landing.jsx          # 落地页：选队、阵型、难度、模式入口
+├── layout.jsx           # 全局布局、PWA 元数据
+├── lobby/               # 局域网大厅：QR 码、手柄配对
+├── match/               # 比赛页：Pixi 画布、HUD、触控、进球特效
+├── pad/                 # 局域网手机手柄
+├── online/              # 公网房间 UI + 客户端协议 + 帧编解码
+├── online-pad/          # 公网手机手柄入口
+├── lan/                 # 局域网客户端协议
+├── ui/                  # 通用组件：图标、队服、阵型图
+├── data/                # 游戏数据：队伍、球员、阵型
+├── audio/               # SoundBank 音效管理
+├── i18n/                # 多语言字典
+├── api/health/          # 健康检查端点
+└── GameClient.jsx       # Pixi 引擎加载器
+cloudflare/
+└── online-worker.js     # Durable Object 公网房间服务
+online/
+└── shared.js            # Node / Worker 共用协议与校验
 public/
 └── match-runtime-min/   # 预构建比赛引擎（闭源）
-cloudflare/
-└── online-worker.js     # Durable Object 房间服务
-online/
-└── shared.js            # Node / Worker 共用协议
-script/                  # 构建、验证、资源生成脚本（~40 个）
+script/                  # ~40 个脚本：构建、验证、资源生成、中继服务
+.github/workflows/
+└── build.yml            # CI：tag 触发三平台构建 → GitHub Releases
 ```
 
-### 🛠 开发指南
-
-推荐使用 pnpm：
+### 🛠 开发
 
 ```bash
 pnpm install
 
-# 启动 Next.js dev server（端口 13000）
+# 启动 Next.js dev server (:13000)
 pnpm dev
 
-# 启动 Electron 开发模式（连接上一步的 dev server）
+# 启动 Electron（连接上一步的 dev server）
 pnpm desktop
 
-# 局域网对战开发
+# 局域网对战开发（dev server + LAN 中继）
 pnpm dev:lan
 
-# 公网联机开发（含本地房间中继）
+# 公网联机开发（dev server + 本地房间中继）
 pnpm dev:online
 ```
 
-### 🔌 端口规划
-
-| 端口 | 服务 |
-| --- | --- |
-| 13000 | Next.js 应用 |
-| 13001 | 局域网 WebSocket 中继 |
-| 13002 | 公网房间中继（开发）/ Durable Objects（生产） |
+Electron 开发模式下，主进程检测到非打包状态，跳过内嵌服务启动，直接连接
+外部 dev server。生产模式下则全自动启动所有服务。
 
 ### 🔧 构建与发布
 
 ```bash
-# 生产构建 + 打包安装文件（DMG / NSIS / AppImage）
-pnpm desktop:build
+# 生产构建 + 打包安装文件
+pnpm desktop:build     # → dist-electron/*.dmg / *.exe / *.AppImage
 
-# 仅输出应用目录，不打包
+# 仅构建到目录（不打包）
 pnpm desktop:dir
 ```
 
-**CI 自动发布**：推送 `v*` tag 触发 GitHub Actions 自动构建三平台安装包并发布到 GitHub Releases：
+**CI 自动发布**：推送 `v*` tag → GitHub Actions 并行构建三平台 → 发布到
+GitHub Releases：
 
 ```bash
 git tag v0.1.1
 git push origin v0.1.1
 ```
 
-用户安装后通过 electron-updater 自动检测和下载更新。
-
-**公网房间服务部署**（可选，桌面应用在局域网/单机模式无需此步骤）：
+**公网房间服务**（可选，仅公网联机需要）：
 
 ```bash
-# 修改 wrangler-online.toml 中的 ALLOWED_ORIGINS
-pnpm deploy:online
+pnpm deploy:online     # 部署 Durable Objects 到 Cloudflare
 ```
 
 ### 🧪 测试
@@ -179,27 +190,7 @@ pnpm deploy:online
 | 命令 | 说明 |
 | --- | --- |
 | `pnpm test:online` | 公网房间协议验证（命令行） |
-| `pnpm test:online:browser` | Chrome E2E：双屏、触控、手柄、画布渲染（Playwright） |
-
-### 🎨 资源管线
-
-`script/` 目录包含约 40 个素材生成脚本，覆盖球员肖像、球迷精灵、裁判、足球图标、草地纹理、球场样式、ElevenLabs 动物音效、比赛 HUD 等。
-
-### 🛠 常用命令
-
-| 命令 | 说明 |
-| --- | --- |
-| `pnpm dev` | Next.js dev server |
-| `pnpm desktop` | Electron 开发模式 |
-| `pnpm desktop:build` | 生产构建 + 打包 |
-| `pnpm desktop:dir` | 生产构建（仅目录） |
-| `pnpm dev:lan` | 局域网对战开发 |
-| `pnpm dev:online` | 公网联机开发 |
-| `pnpm test:online` | 公网协议验证 |
-| `pnpm test:online:browser` | 浏览器 E2E 测试 |
-| `pnpm deploy:online` | 部署 Cloudflare 房间服务 |
-| `pnpm build` | Next.js 生产构建 |
-| `pnpm start` | Next.js 生产模式运行 |
+| `pnpm test:online:browser` | Chrome E2E：双屏、触控、手柄、画布（Playwright） |
 
 ### 📄 许可证
 
@@ -221,15 +212,17 @@ pnpm deploy:online
 ### 🎮 Overview
 
 Animal Cup is inspired by classic arcade football games. Pick from 8 animal
-national teams, set your formation, watch an AI-simulated 7v7 match, or take
-control with a keyboard, touchscreen, or phone gamepad.
+national teams, set your formation and difficulty, then watch an AI-simulated
+7v7 match or take control of a player yourself.
 
-As a desktop app, it works out of the box—no browser, no deployment. Install
-and enjoy solo, LAN, and online multiplayer right away, with automatic updates.
+Built on Electron, it's a **double-click-to-install** desktop app.
+On launch, it automatically starts a Next.js production server and
+LAN/online relay services in the background — no configuration needed.
 
 ### 📦 Download
 
-Get the latest version from [GitHub Releases](https://github.com/lbuibui/animal-world-cup-desktop/releases):
+Get the latest version from
+[GitHub Releases](https://github.com/lbuibui/animal-world-cup-desktop/releases):
 
 | Platform | Installer |
 | --- | --- |
@@ -237,51 +230,63 @@ Get the latest version from [GitHub Releases](https://github.com/lbuibui/animal-
 | **Windows** | `Animal-Cup-Setup-{version}.exe` |
 | **Linux** | `Animal-Cup-{version}.AppImage` |
 
-The app updates itself automatically—no need to check for new versions.
+The app checks for updates every 4 hours (electron-updater + GitHub Releases).
+No manual upgrades needed.
 
-### 🕹 Four Game Modes
+### 🕹 Game Modes
 
 | Mode | Description |
 | --- | --- |
-| Local solo | AI spectator or keyboard / touch controls |
-| LAN multiplayer | Shared big screen + phones as wireless gamepads via QR code |
-| Online multiplayer | Invite-only rooms, direct controls or phone controllers per side |
-| Phone gamepad | Scan QR in LAN / online mode, phone becomes a wireless controller |
+| **Watch (AI vs AI)** | Sit back and enjoy the match |
+| **Play (solo)** | Control one player with keyboard/touch against an AI team |
+| **LAN multiplayer** | Big screen runs the match, phones become wireless gamepads via QR code |
+| **Online multiplayer** | 6-character room codes — direct controls or phone controllers on each side |
 
 ### 🏗 Architecture
 
 ```text
-┌─────────────────────────────────────────────────┐
-│                Electron Desktop Shell             │
-│  ┌─────────────────────────────────────────────┐│
-│  │           Embedded Next.js 15 Server         ││
-│  │  Landing → Lobby → Match (Pixi.js engine)    ││
-│  │         Pad / OnlinePad (phone controllers)  ││
-│  ├─────────────────────────────────────────────┤│
-│  │  LAN relay (ws)    │  Online relay (dev)     ││
-│  └─────────────────────────────────────────────┘│
-│          Frameless window + System tray          │
-└─────────────────────────────────────────────────┘
-                      │
-                      ▼ Production online
-┌─────────────────────────────────────────────────┐
-│  Cloudflare Workers + Durable Objects (rooms)    │
-└─────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────┐
+│                Electron Main Process                  │
+│  ┌──────────────────────────────────────────────────┐ │
+│  │      Next.js 15 Production Server (:13000)       │ │
+│  │  Landing → Lobby → Match (Pixi.js engine)        │ │
+│  │         Pad / OnlinePad (phone controllers)       │ │
+│  ├──────────────────────────────────────────────────┤ │
+│  │  LAN relay (ws, :13001) │ Online relay (:13002)  │ │
+│  └──────────────────────────────────────────────────┘ │
+│    Frameless window · Custom titlebar · System tray   │
+│    electron-updater · GitHub Releases                 │
+└──────────────────────────────────────────────────────┘
+                          │ Production online
+                          ▼
+┌──────────────────────────────────────────────────────┐
+│   Cloudflare Workers + Durable Objects (room service) │
+└──────────────────────────────────────────────────────┘
 ```
 
-- **Desktop**: Electron frameless window, embeds Next.js production server + all relay processes; fully offline-capable (solo + LAN)
-- **LAN**: host browser runs the match sim, phones send input via WebSocket relay
-- **Online**: host browser runs the only simulation, opponent receives ~30 FPS binary frames; server handles rooms, auth, input, and frame relay. 6-character room codes with recovery tokens
+**Launch sequence**: on startup, the Electron main process:
+1. Starts Next.js in production mode (embedded HTTP server)
+2. Forks the LAN WebSocket relay (`script/lan-server.mjs`)
+3. Forks the online room relay (`script/online-server.mjs`)
+4. Polls `/api/health` until the server is ready
+5. Creates a frameless window, loads `http://localhost:13000`
+
+**Window features**:
+- Frameless window with custom titlebar (injected via `preload.mjs`)
+- macOS: native traffic light buttons; Windows: custom min/max/close
+- System tray: Show / Quit
+- Closing the window does not quit the app on macOS (platform convention)
 
 ### 🚀 Tech Stack
 
 | Layer | Technology |
 | --- | --- |
-| Desktop shell | Electron 33 + electron-builder + electron-updater |
-| Frontend | Next.js 15 (App Router) + React 19 |
+| Desktop shell | Electron 33 · electron-builder · electron-updater |
+| Frontend | Next.js 15 (App Router) · React 19 |
 | Match engine | Pre-built Pixi.js runtime (`public/match-runtime-min/`) |
-| Multiplayer | Host-authoritative — WebSocket relay (`ws`) + online frame sync |
-| Online service | Cloudflare Workers + Durable Objects |
+| Multiplayer | Host-authoritative — WebSocket (`ws`) relay + binary frame sync (~30 FPS) |
+| Online service | Cloudflare Workers · Durable Objects |
+| Build | pnpm · CI (GitHub Actions) |
 | Testing | Playwright (E2E) + CLI protocol verification |
 | i18n | Built-in multi-language (`app/i18n/`) |
 | Audio | ElevenLabs animal sound effects |
@@ -289,86 +294,81 @@ The app updates itself automatically—no need to check for new versions.
 ### 📂 Project Structure
 
 ```text
-app/                     # Next.js App Router
-├── api/health/          # Health check
-├── audio/               # Sound effects & SoundBank
-├── data/                # Teams, players, formations
-├── i18n/                # Localized strings
-├── lan/                 # LAN multiplayer
-├── lobby/               # Lobby (team select, formation, kit)
-├── match/               # Match page (Pixi, touch, events, fx)
-├── online/              # Online room UI + protocol + frame codec
-├── online-pad/          # Online phone-controller entry
-├── pad/                 # LAN phone gamepad
-├── ui/                  # Shared UI components
-├── GameClient.jsx       # Game engine loader
-├── Landing.jsx          # Landing page
-└── layout.jsx           # Global layout
 electron/
-├── main.mjs             # Main process (window + tray + embedded server)
-├── preload.mjs          # Preload script
-└── updater.mjs          # Auto-updater
-public/
-└── match-runtime-min/   # Pre-built match engine (closed-source)
+├── main.mjs             # Main process: window, embedded server, tray, IPC
+├── preload.mjs          # Preload: custom titlebar injection, window controls
+└── updater.mjs          # Auto-updater: check / download / install
+app/                     # Next.js App Router
+├── page.jsx             # Entry → Landing
+├── Landing.jsx          # Team select, formation, difficulty, mode picker
+├── layout.jsx           # Global layout, PWA metadata
+├── lobby/               # LAN lobby: QR code, phone pairing
+├── match/               # Match: Pixi canvas, HUD, touch, goal fx
+├── pad/                 # LAN phone gamepad
+├── online/              # Online room UI + client protocol + frame codec
+├── online-pad/          # Online phone gamepad entry
+├── lan/                 # LAN client protocol
+├── ui/                  # Shared components: icons, kit, formation diagram
+├── data/                # Game data: teams, players, formations
+├── audio/               # SoundBank
+├── i18n/                # Localization dictionaries
+├── api/health/          # Health check endpoint
+└── GameClient.jsx       # Pixi engine loader
 cloudflare/
 └── online-worker.js     # Durable Object room service
 online/
-└── shared.js            # Shared protocol (Node & Worker)
-script/                  # Build, verification, asset-gen scripts (~40 files)
+└── shared.js            # Shared protocol & validation (Node & Worker)
+public/
+└── match-runtime-min/   # Pre-built match engine (closed-source)
+script/                  # ~40 scripts: build, verify, asset-gen, relay services
+.github/workflows/
+└── build.yml            # CI: tag → 3-platform build → GitHub Releases
 ```
 
 ### 🛠 Development
 
-pnpm is recommended:
-
 ```bash
 pnpm install
 
-# Start Next.js dev server (port 13000)
+# Start Next.js dev server (:13000)
 pnpm dev
 
-# Launch Electron in dev mode (connects to the dev server above)
+# Launch Electron (connects to the running dev server)
 pnpm desktop
 
-# LAN multiplayer development
+# LAN multiplayer dev (dev server + LAN relay)
 pnpm dev:lan
 
-# Online multiplayer development (with local room relay)
+# Online multiplayer dev (dev server + local room relay)
 pnpm dev:online
 ```
 
-### 🔌 Port Map
-
-| Port | Service |
-| --- | --- |
-| 13000 | Next.js app |
-| 13001 | LAN WebSocket relay |
-| 13002 | Online room relay (dev) / Durable Objects (prod) |
+In dev mode, Electron detects the unpackaged state, skips embedded server
+startup, and connects to the external dev server. In production, it starts
+all services automatically.
 
 ### 🔧 Build & Release
 
 ```bash
-# Production build + package (DMG / NSIS / AppImage)
-pnpm desktop:build
+# Production build + package
+pnpm desktop:build     # → dist-electron/*.dmg / *.exe / *.AppImage
 
 # Build to directory only (no installer)
 pnpm desktop:dir
 ```
 
-**CI auto-release**: push a `v*` tag to trigger GitHub Actions building all three platforms and publishing to GitHub Releases:
+**CI auto-release**: push a `v*` tag → GitHub Actions builds all three
+platforms in parallel → publishes to GitHub Releases:
 
 ```bash
 git tag v0.1.1
 git push origin v0.1.1
 ```
 
-Installed apps auto-update via electron-updater.
-
-**Online room service deployment** (optional; not needed for solo/LAN mode):
+**Online room service** (optional, only needed for online multiplayer):
 
 ```bash
-# Update ALLOWED_ORIGINS in wrangler-online.toml first
-pnpm deploy:online
+pnpm deploy:online     # Deploy Durable Objects to Cloudflare
 ```
 
 ### 🧪 Testing
@@ -377,26 +377,6 @@ pnpm deploy:online
 | --- | --- |
 | `pnpm test:online` | Online room protocol verification (CLI) |
 | `pnpm test:online:browser` | Chrome E2E: dual screens, touch, controllers, canvas (Playwright) |
-
-### 🎨 Asset Pipeline
-
-The `script/` directory contains ~40 asset-generation scripts covering player portraits, crowd sprites, referee, ball icons, grass textures, stadium styling, ElevenLabs animal sound effects, match HUD, and more.
-
-### 🛠 Commands
-
-| Command | Description |
-| --- | --- |
-| `pnpm dev` | Next.js dev server |
-| `pnpm desktop` | Electron dev mode |
-| `pnpm desktop:build` | Production build + package |
-| `pnpm desktop:dir` | Production build (directory only) |
-| `pnpm dev:lan` | LAN multiplayer dev |
-| `pnpm dev:online` | Online multiplayer dev |
-| `pnpm test:online` | Online protocol verification |
-| `pnpm test:online:browser` | Browser E2E test |
-| `pnpm deploy:online` | Deploy Cloudflare room service |
-| `pnpm build` | Next.js production build |
-| `pnpm start` | Next.js production mode |
 
 ### 📄 License
 
