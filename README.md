@@ -27,7 +27,7 @@ Pick from 8 animal national teams, set your formation, watch or control a 7v7 ma
 
 Animal Cup 灵感来自经典街机足球游戏。你可以从 8 支动物国家队中选择队伍、设置阵型，观看 AI 模拟比赛，也可以使用键盘、触屏或手机手柄亲自操控。
 
-支持 **四种运行模式**：
+支持 **四种运行模式**（💡 推荐桌面应用获得最佳体验）：
 
 | 模式 | 说明 |
 | --- | --- |
@@ -107,6 +107,16 @@ electron/
 script/                  # 构建、验证、资源生成、本地中继脚本（~40 个）
 ```
 
+### 📦 下载安装
+
+从 [GitHub Releases](https://github.com/lbuibui/animal-world-cup-desktop/releases) 下载最新安装包：
+
+- **macOS**：`Animal-Cup-{version}-arm64.dmg`
+- **Windows**：`Animal-Cup-Setup-{version}.exe`
+- **Linux**：`Animal-Cup-{version}.AppImage`
+
+桌面应用内置全部功能（单机 + 局域网 + 公网），支持自动更新。
+
 ### 🕹 快速开始
 
 推荐使用 pnpm（仓库已附带 `pnpm-lock.yaml`）：
@@ -145,7 +155,8 @@ pnpm dev:online
 **桌面应用：**
 
 ```bash
-# 开发模式（需要先启动 dev:online）
+# 开发模式（需先启动 Next.js dev server）
+pnpm dev        # 或 pnpm dev:online（启用公网联机）
 pnpm desktop
 
 # 生产构建 + 打包（DMG / NSIS / AppImage）
@@ -173,6 +184,17 @@ cp .env.example .env.local
 # 4. 重新构建并部署网页
 pnpm build
 ```
+
+#### 桌面应用
+
+推送 `v*` tag 触发 CI 自动构建三平台安装包并发布到 GitHub Releases：
+
+```bash
+git tag v0.1.1
+git push origin v0.1.1
+```
+
+用户安装后通过 electron-updater 自动检查更新。
 
 ### 🧪 测试
 
@@ -236,7 +258,7 @@ Animal Cup is inspired by classic arcade football games. Pick from 8 animal
 national teams, set your formation, watch an AI-simulated 7v7 match, or take
 control with a keyboard, touchscreen, or phone gamepad.
 
-**Four run modes**:
+**Four run modes** (💡 desktop app recommended for the best experience):
 
 | Mode | Description |
 | --- | --- |
@@ -316,6 +338,16 @@ electron/
 script/                  # Build, verification, asset-gen, and local relay scripts (~40 files)
 ```
 
+### 📦 Download
+
+Download the latest installer from [GitHub Releases](https://github.com/lbuibui/animal-world-cup-desktop/releases):
+
+- **macOS**: `Animal-Cup-{version}-arm64.dmg`
+- **Windows**: `Animal-Cup-Setup-{version}.exe`
+- **Linux**: `Animal-Cup-{version}.AppImage`
+
+The desktop app includes all features (solo + LAN + online) with auto-update support.
+
 ### 🕹 Quick Start
 
 pnpm is recommended (a `pnpm-lock.yaml` is shipped):
@@ -359,7 +391,8 @@ controllers.
 **Desktop app:**
 
 ```bash
-# Dev mode (requires dev:online running first)
+# Dev mode (requires Next.js dev server running first)
+pnpm dev        # or pnpm dev:online (with online multiplayer)
 pnpm desktop
 
 # Production build + package (DMG / NSIS / AppImage)
@@ -381,6 +414,17 @@ matchmaking, rankings, and server-side anti-cheat are not included.
 2. Run `pnpm deploy:online` to deploy the Durable Object room service.
 3. Put the returned Worker URL in `.env.local` as `NEXT_PUBLIC_ONLINE_SERVICE_URL`.
 4. Run `pnpm build`, then deploy the web application.
+
+#### Desktop App
+
+Push a `v*` tag to trigger CI building all three platforms and publishing to GitHub Releases:
+
+```bash
+git tag v0.1.1
+git push origin v0.1.1
+```
+
+Installed apps auto-update via electron-updater.
 
 ### 🧪 Testing
 
