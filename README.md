@@ -21,7 +21,7 @@ Pick from 8 animal national teams, set your formation, watch or control a 7v7 ma
 > **项目来源**
 > 本项目基于 [HappySeeds](https://happyseeds.ai/) 平台上的原创作品
 > [Animal Cup](https://app-ce3abc4512.happyseeds.space/) Remix 后，
-> 使用 **Pi-Coding-Agent** 进行二次开发并开源。
+> 使用 **Pi-Coding-Agent** 对[animal-world-cup](https://github.com/NeoXu954/animal-world-cup)进行二次开发并开源。
 
 ### 🎮 简介
 
@@ -226,7 +226,9 @@ pnpm build
 > **Origin**
 > This project is derived from the original
 > [Animal Cup](https://app-ce3abc4512.happyseeds.space/) on
-> [HappySeeds](https://happyseeds.ai/), remixed and rebuilt with **Pi-Coding-Agent**.
+> [HappySeeds](https://happyseeds.ai/), remixed and further developed
+> from [animal-world-cup](https://github.com/NeoXu954/animal-world-cup)
+> with **Pi-Coding-Agent** and open-sourced.
 
 ### 🎮 Overview
 
