@@ -12,6 +12,8 @@ a 7v7 match. Solo, LAN, or online — install and play, no browser needed.
 
 [English](#english) · [中文](#中文)
 
+<img src="public/01.png" alt="Animal Cup 截图" width="800" />
+
 </div>
 
 ---
