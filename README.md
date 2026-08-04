@@ -40,7 +40,7 @@ Animal Cup 灵感来自经典街机足球游戏。从 8 支动物国家队中选
 ### 📦 下载安装
 
 [GitHub Releases](https://github.com/lbuibui/animal-world-cup-desktop/releases)
-提供最新版本（当前 **v0.2.1**，2026-08-04）：
+提供最新版本（当前 **v0.2.2**，2026-08-04）：
 
 | 平台 | 安装包 |
 | --- | --- |
@@ -195,8 +195,8 @@ pnpm desktop:dir
 GitHub Releases：
 
 ```bash
-git tag v0.2.1
-git push origin v0.2.1
+git tag v0.2.2
+git push origin v0.2.2
 ```
 
 **公网房间服务**（可选，仅公网联机需要）：
@@ -245,7 +245,7 @@ Fonts are self-hosted, so the app is fully usable offline.
 
 Get the latest version from
 [GitHub Releases](https://github.com/lbuibui/animal-world-cup-desktop/releases)
-(current **v0.2.1**, 2026-08-04):
+(current **v0.2.2**, 2026-08-04):
 
 | Platform | Installer |
 | --- | --- |
@@ -404,8 +404,8 @@ pnpm desktop:dir
 platforms in parallel → publishes to GitHub Releases:
 
 ```bash
-git tag v0.2.1
-git push origin v0.2.1
+git tag v0.2.2
+git push origin v0.2.2
 ```
 
 **Online room service** (optional, only needed for online multiplayer):
