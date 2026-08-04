@@ -34,7 +34,8 @@ Animal Cup 灵感来自经典街机足球游戏。从 8 支动物国家队中选
 阵型和难度，AI 模拟 7v7 足球赛，或亲自上场操控一名球员。
 
 桌面应用基于 Electron 构建，**双击安装，开箱即用**。应用启动时自动在后台
-运行 Next.js 生产服务器及局域网/公网中继服务，无需额外配置。
+运行 Next.js 生产服务器及局域网/公网中继服务，无需额外配置。字体自托管，
+完全离线可用。
 
 ### 📦 下载安装
 
@@ -97,8 +98,14 @@ Animal Cup 灵感来自经典街机足球游戏。从 8 支动物国家队中选
 4. 轮询 `/api/health` 等待服务就绪
 5. 创建无边框窗口，加载 `http://localhost:13000`
 
+中继子进程崩溃后自动重启（2s 退避，连续 5 次失败放弃），无需手动干预。
+在线联机默认连接公网中继（`animal-cup-online.linyuan.uk`）；本地中继
+（`:13002`）作为未配置公网时的回退，并负责向客户端下发局域网 IP 以生成
+可被好友打开的邀请链接。
+
 **窗口特性**：
 - 无边框窗口 + 自定义标题栏（`preload.mjs` 注入，适配 macOS/Windows）
+- 单实例锁：重复启动聚焦已有窗口，不重复占用端口
 - macOS 保留红绿灯按钮；Windows 自绘最小化/最大化/关闭
 - 系统托盘：显示/退出
 - macOS 关闭窗口不退出应用（符合平台惯例）
@@ -107,12 +114,12 @@ Animal Cup 灵感来自经典街机足球游戏。从 8 支动物国家队中选
 
 | 层级 | 技术 |
 | --- | --- |
-| 桌面壳 | Electron 33 · electron-builder · electron-updater |
+| 桌面壳 | Electron 43 · electron-builder · electron-updater |
 | 前端 | Next.js 15 (App Router) · React 19 |
 | 比赛引擎 | Pixi.js 预编译运行时 (`public/match-runtime-min/`) |
 | 多人对战 | 主机权威架构 — WebSocket (`ws`) 中继 + 公网二进制帧同步 (~30 FPS) |
 | 公网服务 | Cloudflare Workers · Durable Objects |
-| 构建 | pnpm · CI (GitHub Actions) |
+| 构建 | pnpm · CI (GitHub Actions) — CI 同时跑协议单测 |
 | 测试 | Playwright (E2E) + 命令行协议验证 |
 | 国际化 | 内置多语言 (`app/i18n/`) — 中英完整，日/西/葡/法部分（缺失键回退英文） |
 | 音频 | ElevenLabs 动物音效 |
@@ -145,8 +152,10 @@ cloudflare/
 online/
 └── shared.js            # Node / Worker 共用协议与校验
 public/
+├── fonts/               # 自托管字体（Baloo 2 / Titan One，离线可用）
 └── match-runtime-min/   # 预构建比赛引擎（闭源）
-script/                  # ~40 个脚本：构建、验证、资源生成、中继服务
+script/                  # 构建、验证、资源生成、中继服务、工具（net-ip / verify-shared）
+CHANGELOG.md             # 版本修复日志
 .github/workflows/
 └── build.yml            # CI：tag 触发三平台构建 → GitHub Releases
 ```
@@ -230,6 +239,7 @@ national teams, set your formation and difficulty, then watch an AI-simulated
 Built on Electron, it's a **double-click-to-install** desktop app.
 On launch, it automatically starts a Next.js production server and
 LAN/online relay services in the background — no configuration needed.
+Fonts are self-hosted, so the app is fully usable offline.
 
 ### 📦 Download
 
@@ -295,8 +305,14 @@ No manual upgrades needed.
 4. Polls `/api/health` until the server is ready
 5. Creates a frameless window, loads `http://localhost:13000`
 
+Relay crashes auto-restart (2s backoff, gives up after 5 rapid failures).
+Online play uses the public relay (`animal-cup-online.linyuan.uk`) by default;
+the local relay (`:13002`) is the fallback when unconfigured and reports the
+host's LAN IP so invite links are openable by friends.
+
 **Window features**:
 - Frameless window with custom titlebar (injected via `preload.mjs`)
+- Single-instance lock: a second launch focuses the existing window
 - macOS: native traffic light buttons; Windows: custom min/max/close
 - System tray: Show / Quit
 - Closing the window does not quit the app on macOS (platform convention)
@@ -305,12 +321,12 @@ No manual upgrades needed.
 
 | Layer | Technology |
 | --- | --- |
-| Desktop shell | Electron 33 · electron-builder · electron-updater |
+| Desktop shell | Electron 43 · electron-builder · electron-updater |
 | Frontend | Next.js 15 (App Router) · React 19 |
 | Match engine | Pre-built Pixi.js runtime (`public/match-runtime-min/`) |
 | Multiplayer | Host-authoritative — WebSocket (`ws`) relay + binary frame sync (~30 FPS) |
 | Online service | Cloudflare Workers · Durable Objects |
-| Build | pnpm · CI (GitHub Actions) |
+| Build | pnpm · CI (GitHub Actions) — CI also runs protocol unit checks |
 | Testing | Playwright (E2E) + CLI protocol verification |
 | i18n | Built-in multi-language (`app/i18n/`) — zh/en complete, ja/es/pt/fr partial (missing keys fall back to English) |
 | Audio | ElevenLabs animal sound effects |
@@ -343,8 +359,10 @@ cloudflare/
 online/
 └── shared.js            # Shared protocol & validation (Node & Worker)
 public/
+├── fonts/               # Self-hosted fonts (Baloo 2 / Titan One, offline-ready)
 └── match-runtime-min/   # Pre-built match engine (closed-source)
-script/                  # ~40 scripts: build, verify, asset-gen, relay services
+script/                  # Build, verify, asset-gen, relay services, utils (net-ip / verify-shared)
+CHANGELOG.md             # Versioned fix log
 .github/workflows/
 └── build.yml            # CI: tag → 3-platform build → GitHub Releases
 ```
