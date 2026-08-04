@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1 — 2026-08-04
+
+### 🐛 修复
+
+- **公网联机对手端崩溃**:`OnlineMatchBridge` direct 模式引用未声明的 `padClientRef` → `ReferenceError`,对手加入已开始的比赛时页面报 "Application error"。补声明即可,已重新部署网页版并验证。
+
 ## 0.2.0 — 2026-08-04
 
 ### 🐛 修复
