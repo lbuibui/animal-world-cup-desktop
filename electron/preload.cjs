@@ -1,6 +1,11 @@
 // Preload script — injects custom title bar into the renderer and exposes
 // IPC bridge for window controls. Runs with contextIsolation: true.
-import { contextBridge, ipcRenderer } from "electron";
+//
+// NOTE: must stay CommonJS (.cjs). Electron 20+ sandboxes renderers by
+// default, and sandboxed preloads have no ESM context — an `import` statement
+// here is a SyntaxError that kills the whole script (no title bar, no window
+// drag). See electronjs.org/docs/latest/tutorial/esm.
+const { contextBridge, ipcRenderer } = require("electron");
 
 const isMac = process.platform === "darwin";
 

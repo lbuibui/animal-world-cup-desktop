@@ -104,7 +104,7 @@ Animal Cup 灵感来自经典街机足球游戏。从 8 支动物国家队中选
 可被好友打开的邀请链接。
 
 **窗口特性**：
-- 无边框窗口 + 自定义标题栏（`preload.mjs` 注入，适配 macOS/Windows）
+- 无边框窗口 + 自定义标题栏（`preload.cjs` 注入，适配 macOS/Windows）
 - 单实例锁：重复启动聚焦已有窗口，不重复占用端口
 - macOS 保留红绿灯按钮；Windows 自绘最小化/最大化/关闭
 - 系统托盘：显示/退出
@@ -129,7 +129,7 @@ Animal Cup 灵感来自经典街机足球游戏。从 8 支动物国家队中选
 ```text
 electron/
 ├── main.mjs             # 主进程：窗口管理、内嵌服务启动、托盘、IPC
-├── preload.mjs          # 预加载：注入自定义标题栏、窗口控制 API
+├── preload.cjs          # 预加载：注入自定义标题栏、窗口控制 API
 └── updater.mjs          # 自动更新：检查/下载/安装
 app/                     # Next.js App Router
 ├── page.jsx             # 入口 → Landing
@@ -312,7 +312,7 @@ the local relay (`:13002`) is the fallback when unconfigured and reports the
 host's LAN IP so invite links are openable by friends.
 
 **Window features**:
-- Frameless window with custom titlebar (injected via `preload.mjs`)
+- Frameless window with custom titlebar (injected via `preload.cjs`)
 - Single-instance lock: a second launch focuses the existing window
 - macOS: native traffic light buttons; Windows: custom min/max/close
 - System tray: Show / Quit
@@ -337,7 +337,7 @@ host's LAN IP so invite links are openable by friends.
 ```text
 electron/
 ├── main.mjs             # Main process: window, embedded server, tray, IPC
-├── preload.mjs          # Preload: custom titlebar injection, window controls
+├── preload.cjs          # Preload: custom titlebar injection, window controls
 └── updater.mjs          # Auto-updater: check / download / install
 app/                     # Next.js App Router
 ├── page.jsx             # Entry → Landing
