@@ -169,6 +169,7 @@ function installRemoteRenderer(buffer) {
 export default function OnlineMatchBridge() {
   const clientRef = useRef(null);
   const bufferRef = useRef(null);
+  const padClientRef = useRef(null); // direct-mode screen input WS (declared here; used at :338/:378)
   const pendingFrameRef = useRef(null);
   const lastInputAt = useRef([0, 0]);
   const [connection, setConnection] = useState("connecting");
