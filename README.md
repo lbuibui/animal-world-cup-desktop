@@ -40,7 +40,7 @@ Animal Cup 灵感来自经典街机足球游戏。从 8 支动物国家队中选
 ### 📦 下载安装
 
 [GitHub Releases](https://github.com/lbuibui/animal-world-cup-desktop/releases)
-提供最新版本：
+提供最新版本（当前 **v0.2.1**，2026-08-04）：
 
 | 平台 | 安装包 |
 | --- | --- |
@@ -52,7 +52,7 @@ Animal Cup 灵感来自经典街机足球游戏。从 8 支动物国家队中选
 > 右键（或 Control-点击）图标 → “打开”。安装开发者证书后可配置 CI 签名。
 
 应用启动后每 4 小时自动检查更新（electron-updater + GitHub Releases），
-无需手动升级。
+无需手动升级。版本修复记录见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ### 🕹 游戏模式
 
@@ -117,8 +117,8 @@ Animal Cup 灵感来自经典街机足球游戏。从 8 支动物国家队中选
 | 桌面壳 | Electron 43 · electron-builder · electron-updater |
 | 前端 | Next.js 15 (App Router) · React 19 |
 | 比赛引擎 | Pixi.js 预编译运行时 (`public/match-runtime-min/`) |
-| 多人对战 | 主机权威架构 — WebSocket (`ws`) 中继 + 公网二进制帧同步 (~30 FPS) |
-| 公网服务 | Cloudflare Workers · Durable Objects |
+| 多人对战 | 主机权威架构 — WebSocket (`ws` 8.21) 中继 + 公网二进制帧同步 (~30 FPS)；输入按 200 msg/s 限流、Origin 白名单 |
+| 公网服务 | Cloudflare Workers · Durable Objects（SQLite 房间 + Rate Limiter） |
 | 构建 | pnpm · CI (GitHub Actions) — CI 同时跑协议单测 |
 | 测试 | Playwright (E2E) + 命令行协议验证 |
 | 国际化 | 内置多语言 (`app/i18n/`) — 中英完整，日/西/葡/法部分（缺失键回退英文） |
@@ -195,8 +195,8 @@ pnpm desktop:dir
 GitHub Releases：
 
 ```bash
-git tag v0.2.0
-git push origin v0.2.0
+git tag v0.2.1
+git push origin v0.2.1
 ```
 
 **公网房间服务**（可选，仅公网联机需要）：
@@ -211,7 +211,7 @@ pnpm deploy:online     # 部署 Durable Objects 到 Cloudflare
 | --- | --- |
 | `pnpm test:shared` | 联机协议校验逻辑单测（房间码/配置/输入清洗/开局条件） |
 | `pnpm test:online` | 公网房间协议验证（命令行） |
-| `pnpm test:online:browser` | Chrome E2E：双屏、触控、手柄、画布（Playwright） |
+| `pnpm test:online:browser` | 浏览器 E2E：双屏、触控、手柄、画布（Playwright，需本机已装 Chrome） |
 
 ### 📄 许可证
 
@@ -244,7 +244,8 @@ Fonts are self-hosted, so the app is fully usable offline.
 ### 📦 Download
 
 Get the latest version from
-[GitHub Releases](https://github.com/lbuibui/animal-world-cup-desktop/releases):
+[GitHub Releases](https://github.com/lbuibui/animal-world-cup-desktop/releases)
+(current **v0.2.1**, 2026-08-04):
 
 | Platform | Installer |
 | --- | --- |
@@ -257,7 +258,7 @@ Get the latest version from
 > be configured once a Developer ID certificate is available.
 
 The app checks for updates every 4 hours (electron-updater + GitHub Releases).
-No manual upgrades needed.
+No manual upgrades needed. Version history: [CHANGELOG.md](./CHANGELOG.md).
 
 ### 🕹 Game Modes
 
@@ -324,8 +325,8 @@ host's LAN IP so invite links are openable by friends.
 | Desktop shell | Electron 43 · electron-builder · electron-updater |
 | Frontend | Next.js 15 (App Router) · React 19 |
 | Match engine | Pre-built Pixi.js runtime (`public/match-runtime-min/`) |
-| Multiplayer | Host-authoritative — WebSocket (`ws`) relay + binary frame sync (~30 FPS) |
-| Online service | Cloudflare Workers · Durable Objects |
+| Multiplayer | Host-authoritative — WebSocket (`ws` 8.21) relay + binary frame sync (~30 FPS); input rate-limited at 200 msg/s, Origin allowlist |
+| Online service | Cloudflare Workers · Durable Objects (SQLite rooms + Rate Limiter) |
 | Build | pnpm · CI (GitHub Actions) — CI also runs protocol unit checks |
 | Testing | Playwright (E2E) + CLI protocol verification |
 | i18n | Built-in multi-language (`app/i18n/`) — zh/en complete, ja/es/pt/fr partial (missing keys fall back to English) |
@@ -403,8 +404,8 @@ pnpm desktop:dir
 platforms in parallel → publishes to GitHub Releases:
 
 ```bash
-git tag v0.2.0
-git push origin v0.2.0
+git tag v0.2.1
+git push origin v0.2.1
 ```
 
 **Online room service** (optional, only needed for online multiplayer):
@@ -419,7 +420,7 @@ pnpm deploy:online     # Deploy Durable Objects to Cloudflare
 | --- | --- |
 | `pnpm test:shared` | Unit checks for shared protocol validation (room code / config / input sanitize / start rules) |
 | `pnpm test:online` | Online room protocol verification (CLI) |
-| `pnpm test:online:browser` | Chrome E2E: dual screens, touch, controllers, canvas (Playwright) |
+| `pnpm test:online:browser` | Browser E2E: dual screens, touch, controllers, canvas (Playwright, requires Chrome installed locally) |
 
 ### 📄 License
 
