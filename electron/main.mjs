@@ -26,7 +26,10 @@ const ONLINE_PORT = 13002;
 let mainWindow = null;
 let tray = null;
 let serversStarted = false;
+let quitting = false;
 const children = [];
+// relay restart: scriptPath -> { failures } (counter resets after 30s uptime)
+const relayState = new Map();
 
 // ---- icon ----
 const iconPath = path.join(__dirname, "icon.png");
@@ -35,8 +38,11 @@ try {
   appIcon = nativeImage.createFromPath(iconPath);
 } catch { /* fallback to default */ }
 
-// ---- relay spawning ----
+// ---- relay spawning (auto-restart on crash; gives up after 5 rapid failures) ----
 function spawnRelay(scriptPath, env = {}) {
+  const name = path.basename(scriptPath);
+  const state = relayState.get(scriptPath) || { failures: 0 };
+  relayState.set(scriptPath, state);
   const child = fork(scriptPath, [], {
     cwd: root,
     env: { ...process.env, ...env },
@@ -46,6 +52,19 @@ function spawnRelay(scriptPath, env = {}) {
   child.stderr?.on("data", (d) => process.stderr.write(`[relay] ${d}`));
   child.on("error", (err) => console.error("[relay] spawn error:", err.message));
   children.push(child);
+  // survived 30s => reset the failure counter
+  const okTimer = setTimeout(() => { state.failures = 0; }, 30_000);
+  okTimer.unref?.();
+  child.on("exit", (code) => {
+    if (quitting) return;
+    state.failures += 1;
+    if (state.failures > 5) {
+      console.error(`[relay] ${name} crashed ${state.failures} times in a row — giving up`);
+      return;
+    }
+    console.error(`[relay] ${name} exited (${code}) — restarting in 2s`);
+    setTimeout(() => spawnRelay(scriptPath, env), 2000);
+  });
   return child;
 }
 
@@ -161,6 +180,7 @@ function createTray() {
       {
         label: "Quit",
         click: () => {
+          quitting = true;
           for (const child of children) child.kill();
           app.exit(0);
         },
@@ -209,6 +229,7 @@ async function main() {
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
+    quitting = true;
     for (const child of children) child.kill();
     app.quit();
   }
@@ -219,7 +240,22 @@ app.on("activate", () => {
 });
 
 app.on("before-quit", () => {
+  quitting = true;
   for (const child of children) child.kill();
 });
 
-main();
+// ---- single instance: a second launch focuses the existing window ----
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+} else {
+  app.on("second-instance", () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.show();
+      mainWindow.focus();
+    } else {
+      createWindow();
+    }
+  });
+  main();
+}

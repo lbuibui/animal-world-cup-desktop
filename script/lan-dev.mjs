@@ -3,20 +3,7 @@
 // everything a local-versus session needs. Plain `pnpm dev` still works for
 // solo / watch use — the relay is only required for 局域网联机.
 import { spawn } from "node:child_process";
-import os from "node:os";
-
-function lanIP() {
-  const ifaces = os.networkInterfaces();
-  for (const name of Object.keys(ifaces)) {
-    for (const ni of ifaces[name] || []) {
-      if (ni.family === "IPv4" && !ni.internal &&
-          /^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(ni.address)) {
-        return ni.address;
-      }
-    }
-  }
-  return "localhost";
-}
+import { lanIP } from "./net-ip.mjs";
 
 const procs = [];
 function run(cmd, args, name, color) {
@@ -44,7 +31,7 @@ process.on("SIGTERM", shutdown);
 run("node", ["script/lan-server.mjs"], "lan", "36");
 run("npx", ["next", "dev", "-p", "13000", "-H", "0.0.0.0"], "next", "32");
 
-const ip = lanIP();
+const ip = lanIP("localhost");
 console.log(`\n\x1b[1m  Animal Cup — LAN ready\x1b[0m`);
 console.log(`  Big screen / 主机:  http://localhost:13000/lobby`);
 console.log(`  Phones / 手机加入:  http://${ip}:13000/pad   (or scan the QR in the lobby)\n`);

@@ -1,17 +1,5 @@
 import { spawn } from "node:child_process";
-import os from "node:os";
-
-function lanIP() {
-  const interfaces = os.networkInterfaces();
-  for (const values of Object.values(interfaces)) {
-    for (const item of values || []) {
-      if (item.family === "IPv4" && !item.internal && /^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(item.address)) {
-        return item.address;
-      }
-    }
-  }
-  return "localhost";
-}
+import { lanIP } from "./net-ip.mjs";
 
 const processes = [];
 
@@ -41,7 +29,7 @@ process.on("SIGTERM", shutdown);
 run("node", ["script/online-server.mjs"], "online", "36");
 run("npx", ["next", "dev", "-p", "13000", "-H", "0.0.0.0"], "next", "32");
 
-const ip = lanIP();
+const ip = lanIP("localhost");
 console.log("\n\x1b[1m  Animal Cup Online ready\x1b[0m");
 console.log("  Local:   http://localhost:13000");
 console.log(`  Network: http://${ip}:13000`);

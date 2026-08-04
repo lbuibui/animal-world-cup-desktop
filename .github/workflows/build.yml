@@ -34,7 +34,14 @@ jobs:
 
       - run: pnpm install
 
+      - run: pnpm test:shared
+
       - run: pnpm build
+        env:
+          # Public online config — inlined at build time. Desktop installs from
+          # GitHub Releases must connect to the public relay, not the LAN one.
+          NEXT_PUBLIC_ONLINE_SERVICE_URL: https://animal-cup-online.linyuan.uk
+          NEXT_PUBLIC_APP_URL: https://animal-cup.linyuan.uk
 
       - run: pnpm exec electron-builder --${{ matrix.target }} --publish always
         env:

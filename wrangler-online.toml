@@ -25,4 +25,7 @@ namespace_id = "1002"
 simple = { limit = 60, period = 60 }
 
 [vars]
+# Origin allowlist. Desktop clients also connect from localhost and arbitrary
+# LAN IPs — the worker's originAllowed() additionally permits private-range
+# hosts, so no need to enumerate them here.
 ALLOWED_ORIGINS = "https://animal-cup.linyuan.uk,http://localhost:13000,http://127.0.0.1:13000"

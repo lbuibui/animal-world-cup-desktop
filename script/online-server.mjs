@@ -1,7 +1,9 @@
 import http from "node:http";
 import { randomBytes } from "node:crypto";
 import { WebSocketServer } from "ws";
+import { lanIP } from "./net-ip.mjs";
 import {
+  ONLINE_MAX_MESSAGES_PER_SECOND,
   ONLINE_RECONNECT_GRACE_MS,
   ONLINE_ROOM_ALPHABET,
   ONLINE_ROOM_CODE_LENGTH,
@@ -17,7 +19,7 @@ const MAX_JSON_BYTES = 8 * 1024;
 const MAX_FRAME_BYTES = 64 * 1024;
 const MAX_BUFFERED_BYTES = 512 * 1024;
 const MAX_ROOM_SOCKETS = 8;
-const MAX_MESSAGES_PER_SECOND = 90;
+const MAX_ROOMS = 2000; // cap in-memory room table (per-IP create rate limits still apply)
 const rooms = new Map();
 const createRates = new Map();
 const connectRates = new Map();
@@ -43,7 +45,12 @@ function allowedOrigin(req) {
     .map((value) => value.trim())
     .filter(Boolean);
   if (!configured.length) return true;
-  return configured.includes(req.headers.origin || "");
+  const origin = req.headers.origin || "";
+  if (configured.includes(origin)) return true;
+  // Desktop clients open the app from arbitrary LAN IPs — private-range hosts
+  // are always permitted (mirrors cloudflare/online-worker.js originAllowed).
+  const host = origin.replace(/^https?:\/\//, "").split(":")[0];
+  return /^(localhost|127\.0\.0\.1|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host);
 }
 
 function corsHeaders(req) {
@@ -135,6 +142,9 @@ const server = http.createServer(async (req, res) => {
     }
     try {
       const body = await readJson(req);
+      if (rooms.size >= MAX_ROOMS) {
+        return json(res, req, 503, { ok: false, reason: "server-full" });
+      }
       const created = createRoom(body && body.config);
       return json(res, req, 201, {
         ok: true,
@@ -229,17 +239,22 @@ function acceptHello(ws, room, msg) {
     return { token: nextToken };
   }
 
-  if (role === "pad" && room.config.mode === "controllers") {
+  // KEEP IN SYNC with cloudflare/online-worker.js acceptHello: direct mode
+  // lets one pad join (slot fixed 1, no invite needed) — the screen controls
+  // red, the pad controls blue.
+  if (role === "pad" && (room.config.mode === "controllers" || room.config.mode === "direct")) {
     let slot = Number(msg.slot);
     if (slot !== 0 && slot !== 1) slot = active(room, "pad", 0) ? 1 : 0;
+    if (room.config.mode === "direct") slot = 1;
     const old = active(room, "pad", slot);
     const stored = room.padTokens[slot];
     const invited = String(msg.invite || "") === room.padInviteTokens[slot];
+    const isDirect = room.config.mode === "direct";
     if (old && (!resumeToken || resumeToken !== stored)) return { error: "slot-full" };
     if (!old && stored && now < room.padReservedUntil[slot] && resumeToken !== stored) {
       return { error: "slot-reserved" };
     }
-    if ((!resumeToken || resumeToken !== stored) && !invited) return { error: "slot-invite" };
+    if (!isDirect && (!resumeToken || resumeToken !== stored) && !invited) return { error: "slot-invite" };
     const nextToken = resumeToken && resumeToken === stored ? resumeToken : token();
     room.padTokens[slot] = nextToken;
     room.padReservedUntil[slot] = 0;
@@ -270,6 +285,10 @@ function handleJson(ws, room, msg) {
       role: ws.meta.role,
       slot: ws.meta.slot,
       token: accepted.token,
+      // LAN IP so desktop clients can build invite links phones can open
+      // (their own origin is http://localhost:13000). Cloudflare Worker
+      // deployment has no LAN — it omits this and clients use their origin.
+      ip: lanIP(),
       padInvites: ws.meta.role === "host"
         ? room.padInviteTokens
         : ws.meta.role === "screen" && room.config.mode === "controllers"
@@ -339,7 +358,7 @@ wss.on("connection", (ws, req, room) => {
       ws.rateCount = 0;
     }
     ws.rateCount += 1;
-    if (ws.rateCount > MAX_MESSAGES_PER_SECOND) return ws.close(4008, "rate-limit");
+    if (ws.rateCount > ONLINE_MAX_MESSAGES_PER_SECOND) return ws.close(4008, "rate-limit");
     if (isBinary) {
       if (data.byteLength > MAX_FRAME_BYTES) return ws.close(1009, "frame-too-large");
       if (ws.meta && ws.meta.role === "host") {

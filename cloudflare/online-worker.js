@@ -1,4 +1,5 @@
 import {
+  ONLINE_MAX_MESSAGES_PER_SECOND,
   ONLINE_RECONNECT_GRACE_MS,
   ONLINE_ROOM_ALPHABET,
   ONLINE_ROOM_CODE_LENGTH,
@@ -13,7 +14,6 @@ const MAX_JSON_BYTES = 8 * 1024;
 const MAX_FRAME_BYTES = 64 * 1024;
 const MAX_BUFFERED_BYTES = 512 * 1024;
 const MAX_ROOM_SOCKETS = 8;
-const MAX_MESSAGES_PER_SECOND = 90;
 
 function randomCode() {
   const bytes = new Uint8Array(ONLINE_ROOM_CODE_LENGTH);
@@ -48,7 +48,13 @@ function originAllowed(request, env) {
     .split(",")
     .map((value) => value.trim())
     .filter(Boolean);
-  return !allowed.length || allowed.includes(request.headers.get("Origin") || "");
+  if (!allowed.length) return true;
+  const origin = request.headers.get("Origin") || "";
+  if (allowed.includes(origin)) return true;
+  // Desktop clients open the app from localhost or arbitrary LAN IPs, which
+  // cannot be enumerated — private-range hosts are always permitted.
+  const host = origin.replace(/^https?:\/\//, "").split(":")[0];
+  return /^(localhost|127\.0\.0\.1|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host);
 }
 
 async function readSmallJson(request) {
@@ -84,7 +90,7 @@ export default {
         const room = randomCode();
         const hostToken = randomToken();
         const padInvites = [randomToken(), randomToken()];
-        const id = env.ONLINE_ROOMS.idFromName(room, { locationHint: "apac" });
+        const id = env.ONLINE_ROOMS.idFromName(room, { locationHint: "nearest" });
         const response = await env.ONLINE_ROOMS.get(id).fetch("https://room.internal/create", {
           method: "POST",
           body: JSON.stringify({ room, hostToken, padInvites, config }),
@@ -105,7 +111,7 @@ export default {
         const limited = await env.CONNECT_RATE_LIMITER.limit({ key: `${ip}:${room}` });
         if (!limited.success) return json({ ok: false, reason: "rate-limit" }, 429, origin);
       }
-      const id = env.ONLINE_ROOMS.idFromName(room, { locationHint: "apac" });
+      const id = env.ONLINE_ROOMS.idFromName(room, { locationHint: "nearest" });
       return env.ONLINE_ROOMS.get(id).fetch(request);
     }
 
@@ -291,7 +297,7 @@ export class OnlineRoom {
       attachment.rateCount = 0;
     }
     attachment.rateCount = (attachment.rateCount || 0) + 1;
-    if (attachment.rateCount > MAX_MESSAGES_PER_SECOND) {
+    if (attachment.rateCount > ONLINE_MAX_MESSAGES_PER_SECOND) {
       return ws.close(4008, "rate-limit");
     }
     ws.serializeAttachment(attachment);

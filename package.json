@@ -1,6 +1,6 @@
 {
   "name": "animal-cup",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "main": "electron/main.mjs",
@@ -11,10 +11,11 @@
     "online": "node script/online-server.mjs",
     "dev:online": "rm -rf .next && node script/online-dev.mjs",
     "test:online": "node script/verify-online-relay.mjs",
+    "test:shared": "node script/verify-shared.mjs",
     "test:online:browser": "node script/verify-online-browser.mjs",
     "deploy:online": "wrangler deploy -c wrangler-online.toml",
     "prebuild": "rm -rf .next",
-    "build": "node script/stamp-sw-version.mjs && node script/safe-build.mjs",
+    "build": "node script/stamp-sw-version.mjs && next build",
     "build:worker": "rm -rf .next .open-next && node script/stamp-sw-version.mjs && opennextjs-cloudflare build",
     "start": "next start -p 13000",
     "desktop": "electron .",
@@ -22,23 +23,23 @@
     "desktop:dir": "pnpm build && electron-builder --dir"
   },
   "dependencies": {
-    "next": "15.5.19",
+    "electron-updater": "^6.3.9",
+    "next": "15.5.21",
     "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "electron-updater": "^6.3.9",
-    "ws": "^8.18.0"
+    "ws": "^8.21.1"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250109.0",
     "@opennextjs/cloudflare": "^1.19.10",
     "@types/react": "19.2.17",
+    "electron": "^43.2.0",
+    "electron-builder": "^26.15.3",
     "playwright-core": "^1.61.1",
     "sharp": "^0.34.5",
     "typescript": "5.8.2",
-    "wrangler": "^4.86.0",
-    "electron": "^33.4.0",
-    "electron-builder": "^25.1.8"
+    "wrangler": "^4.86.0"
   },
   "build": {
     "appId": "ai.animalcup.desktop",
@@ -50,10 +51,22 @@
       "next.config.mjs"
     ],
     "extraResources": [
-      { "from": ".next", "to": "app/.next" },
-      { "from": "public", "to": "app/public" },
-      { "from": "script", "to": "app/script" },
-      { "from": "online", "to": "app/online" }
+      {
+        "from": ".next",
+        "to": "app/.next"
+      },
+      {
+        "from": "public",
+        "to": "app/public"
+      },
+      {
+        "from": "script",
+        "to": "app/script"
+      },
+      {
+        "from": "online",
+        "to": "app/online"
+      }
     ],
     "directories": {
       "output": "dist-electron"

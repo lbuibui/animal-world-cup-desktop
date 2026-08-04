@@ -18,6 +18,10 @@ export const ONLINE_ROOM_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 export const ONLINE_ROOM_CODE_LENGTH = 6;
 export const ONLINE_ROOM_TTL_MS = 30 * 60 * 1000;
 export const ONLINE_RECONNECT_GRACE_MS = 30 * 1000;
+// Per-socket message cap. 2 pads + 1 screen at 30 FPS ≈ 90 msg/s, so 90 was
+// right on the line — any tap burst or timer jitter tripped it and killed a
+// healthy connection. 200 leaves headroom while still blocking floods.
+export const ONLINE_MAX_MESSAGES_PER_SECOND = 200;
 
 function oneOf(value, values, fallback) {
   return values.includes(value) ? value : fallback;
@@ -31,6 +35,7 @@ export function normalizeRoomCode(value) {
 }
 
 export function normalizeOnlineConfig(input = {}) {
+  input = input || {}; // null from a hostile client must not crash the relay
   const mode = oneOf(input.mode, ONLINE_MODES, "direct");
   const red = oneOf(input.red, ONLINE_TEAMS, "argentina");
   let blue = oneOf(input.blue, ONLINE_TEAMS, "portugal");
@@ -57,6 +62,7 @@ function clampAxis(value) {
 }
 
 export function sanitizeOnlineInput(value = {}) {
+  value = value || {}; // null from a hostile client must not crash the relay
   return {
     vx: clampAxis(value.vx),
     vy: clampAxis(value.vy),

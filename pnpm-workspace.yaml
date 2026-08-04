@@ -1,15 +1,16 @@
 # pnpm 11+ reads the build-script allowlist here (no longer from package.json).
 # sharp/esbuild/workerd ship native/postinstall build steps the project needs;
-# allow them explicitly so `pnpm install` runs their scripts and exits 0
-# (an un-allowlisted build script makes pnpm 11 exit 1 with ERR_PNPM_IGNORED_BUILDS,
-# which in turn breaks Next's startup dependency check).
+# electron-winstaller (from electron-builder, Windows target) needs its script
+# on Windows CI. Allow them explicitly so `pnpm install` runs their scripts and
+# exits 0 (an un-allowlisted build script makes pnpm 11 exit 1 with
+# ERR_PNPM_IGNORED_BUILDS, which in turn breaks Next's startup dependency check).
 allowBuilds:
   sharp: true
   esbuild: true
   workerd: true
   electron: true
-onlyBuiltDependencies:
-  - sharp
-  - esbuild
-  - workerd
-  - electron
+  electron-winstaller: true
+
+# Force the patched ws everywhere (miniflare pins the vulnerable 8.20.1).
+overrides:
+  ws: ^8.21.0

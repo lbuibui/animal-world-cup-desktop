@@ -13,6 +13,33 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* ---- local fonts ----
+   Self-hosted so the desktop app never depends on fonts.googleapis.com
+   (offline / slow networks would otherwise fall back mid-session).
+   Baloo 2 700/800 = rounded UI display font; Titan One = chunky cartoon
+   title face (Latin only — CJK titles fall back to PingFang/System). */
+@font-face {
+  font-family: "Baloo 2";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/baloo2-700.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Baloo 2";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("/fonts/baloo2-800.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Titan One";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/titan-one.woff2") format("woff2");
+}
+
 /* ---- buttons: kill the focus outline that sticks after a click/tap. The
    browser draws it in the system accent colour, which shows up as a red box on
    some setups ("点按按钮老是有红框"). Transparent tap highlight too. A subtle

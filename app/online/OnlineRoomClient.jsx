@@ -61,6 +61,9 @@ export default function OnlineRoomClient({ createMode, initialRoom, initialHost,
   const [padQr, setPadQr] = useState(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
+  // Invite-link base. Public web: NEXT_PUBLIC_APP_URL or the page origin.
+  // Desktop (localhost): overwritten with the relay-reported LAN IP below,
+  // otherwise friends receive http://localhost:13000 and cannot open it.
   const [origin, setOrigin] = useState("");
 
   function enterMatch(nextConfig) {
@@ -112,6 +115,12 @@ export default function OnlineRoomClient({ createMode, initialRoom, initialHost,
         onMessage(msg) {
           if (cancelled) return;
           if (msg.t === "hosted" || msg.t === "joined") {
+            // Local relay reports its LAN IP; use it so the invite link is
+            // http://<lan-ip>:<port> instead of http://localhost:13000.
+            if (msg.ip && typeof window !== "undefined") {
+              const port = window.location.port || "13000";
+              setOrigin(`http://${msg.ip}:${port}`);
+            }
             const nextConfig = normalizeOnlineConfig(msg.config || seed);
             resumeToken = msg.token || resumeToken;
             configRef.current = nextConfig;

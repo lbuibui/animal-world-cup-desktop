@@ -54,16 +54,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Display fonts. Titan One = chunky cartoon face for the hero logo
-            (Latin only); ZCOOL KuaiLe covers the CJK title fallback (动物杯);
-            Baloo 2 is the rounded UI display font used across the HUD. Google
-            subsets CJK by unicode-range, so only glyphs in view are fetched. */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=Titan+One&family=ZCOOL+KuaiLe&display=swap"
-          rel="stylesheet"
-        />
+        {/* Fonts are self-hosted (/fonts/*.woff2, see globals.css @font-face) so
+            the desktop app works fully offline — no fonts.googleapis.com.
+            CJK (ZCOOL KuaiLe) intentionally not bundled: it's multi-MB and
+            system CJK fonts cover the fallback. */}
       </head>
       <body className="loading" suppressHydrationWarning>
         <LocaleProvider>{children}</LocaleProvider>

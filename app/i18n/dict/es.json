@@ -134,5 +134,11 @@
   "home.matchTime": "Duración",
   "home.time.short": "Corto",
   "home.time.normal": "Normal",
-  "home.time.long": "Largo"
+  "home.time.long": "Largo",
+  "pad.status.connecting": "Connecting to the host…",
+  "pad.status.joining": "Joining room…",
+  "pad.status.full": "This room already has 2 players.",
+  "pad.status.no-room": "Room not found — check the code or rescan.",
+  "pad.status.denied": "This controller invite is invalid or reserved.",
+  "pad.status.closed": "The host left. Ask them to restart."
 }

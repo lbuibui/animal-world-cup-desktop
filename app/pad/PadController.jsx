@@ -12,6 +12,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createLanClient } from "../lan/lanClient";
 import { createOnlineClient } from "../online/onlineClient";
+import { useLocale } from "../i18n/LocaleProvider";
 
 const SVG = (props) => (
   <svg viewBox="0 0 24 24" width={props.s || 30} height={props.s || 30} fill="none"
@@ -230,21 +231,21 @@ export default function PadController({ room, transport = "lan", requestedSlot =
 }
 
 function PadStatus({ status, room }) {
-  const MSG = {
-    connecting: ["连接中…", "Connecting to the host…"],
-    joining: ["加入房间…", "Joining room…"],
-    full: ["房间已满", "This room already has 2 players."],
-    "no-room": ["房间不存在", "Room not found — check the code or rescan."],
-    denied: ["邀请无效", "This controller invite is invalid or reserved."],
-    closed: ["主机已离开", "The host left. Ask them to restart."],
+  const { t } = useLocale();
+  const KEY = {
+    connecting: "pad.status.connecting",
+    joining: "pad.status.joining",
+    full: "pad.status.full",
+    "no-room": "pad.status.no-room",
+    denied: "pad.status.denied",
+    closed: "pad.status.closed",
   };
-  const [zh, en] = MSG[status] || ["…", "…"];
+  const message = t(KEY[status] || "pad.status.connecting");
   return (
     <div className="pad pad--status">
       <div className="pad-status-card">
         <div className="pad-status-spinner" data-on={status === "connecting" || status === "joining"} />
-        <b>{zh}</b>
-        <span>{en}</span>
+        <b>{message}</b>
         {room ? <code className="pad-room-big">{room}</code> : null}
       </div>
     </div>

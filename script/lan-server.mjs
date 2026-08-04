@@ -11,25 +11,13 @@
 // no secrets, no file/system access. Do NOT expose this port to the internet;
 // it is a same-LAN convenience server, not a public service.
 import { WebSocketServer } from "ws";
-import os from "node:os";
+import { lanIP } from "./net-ip.mjs";
 
 const PORT = Number(process.env.LAN_PORT || 13001);
 const SLOTS = 2; // slot 0 = red (P1), slot 1 = blue (P2)
 const HOST_GRACE_MS = 25000; // keep room alive across lobby -> match navigation
 
 // lanIP: first non-internal IPv4 — what the phone types / the QR encodes.
-function lanIP() {
-  const ifaces = os.networkInterfaces();
-  const prefer = []; // 192.168.* / 10.* first, then anything else
-  for (const name of Object.keys(ifaces)) {
-    for (const ni of ifaces[name] || []) {
-      if (ni.family !== "IPv4" || ni.internal) continue;
-      if (/^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(ni.address)) prefer.unshift(ni.address);
-      else prefer.push(ni.address);
-    }
-  }
-  return prefer[0] || "127.0.0.1";
-}
 
 // rooms: code -> { host, pads:Map<padId,{ws,name,slot,ready}>, graceTimer }
 const rooms = new Map();
@@ -66,9 +54,25 @@ function pushRoster(room) {
   send(room.host, { t: "roster", pads: roster(room) });
 }
 
-const wss = new WebSocketServer({ port: PORT, host: "0.0.0.0" });
+const wss = new WebSocketServer({ port: PORT, host: "0.0.0.0", maxPayload: 64 * 1024 });
+
+// Heartbeat: a phone that drops off Wi-Fi or dies mid-match leaves a half-open
+// socket that never fires "close" — ping/pong + terminate cleans those up.
+const clients = new Set();
+const heartbeat = setInterval(() => {
+  for (const ws of clients) {
+    if (!ws.isAlive) { try { ws.terminate(); } catch {} continue; }
+    ws.isAlive = false;
+    try { ws.ping(); } catch {}
+  }
+}, 15_000);
+heartbeat.unref();
 
 wss.on("connection", (ws) => {
+  ws.isAlive = true;
+  clients.add(ws);
+  ws.on("pong", () => { ws.isAlive = true; });
+  ws.on("close", () => clients.delete(ws));
   // Connection identity is established by the first message (hello/host or
   // hello/pad). Until then the socket is anonymous.
   ws.__role = null; // "host" | "pad"
@@ -173,5 +177,6 @@ wss.on("connection", (ws) => {
 });
 
 const ip = lanIP();
+if (ip === "127.0.0.1") console.warn("[lan] no external IPv4 found — phones on Wi-Fi will not reach this relay");
 console.log(`[lan] relay listening on ws://${ip}:${PORT}  (phones join via http://${ip}:13000/pad)`);
 

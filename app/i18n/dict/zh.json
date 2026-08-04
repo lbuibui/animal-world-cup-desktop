@@ -182,5 +182,11 @@
   "home.matchTime": "比赛时长",
   "home.time.short": "短",
   "home.time.normal": "标准",
-  "home.time.long": "长"
+  "home.time.long": "长",
+  "pad.status.connecting": "连接中…",
+  "pad.status.joining": "加入房间…",
+  "pad.status.full": "房间已满",
+  "pad.status.no-room": "房间不存在 — 检查房间号或重新扫码",
+  "pad.status.denied": "邀请无效",
+  "pad.status.closed": "主机已离开，请让主机重新开始"
 }

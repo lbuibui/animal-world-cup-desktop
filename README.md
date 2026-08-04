@@ -47,6 +47,9 @@ Animal Cup 灵感来自经典街机足球游戏。从 8 支动物国家队中选
 | **Windows** | `Animal-Cup-Setup-{version}.exe` |
 | **Linux** | `Animal-Cup-{version}.AppImage` |
 
+> **macOS 未签名说明**：当前发布包未做 Apple 签名/公证，首次打开需
+> 右键（或 Control-点击）图标 → “打开”。安装开发者证书后可配置 CI 签名。
+
 应用启动后每 4 小时自动检查更新（electron-updater + GitHub Releases），
 无需手动升级。
 
@@ -58,6 +61,12 @@ Animal Cup 灵感来自经典街机足球游戏。从 8 支动物国家队中选
 | **单人操控** | 键盘/触屏操控一名球员，对抗 AI 队伍 |
 | **局域网对战** | 大屏运行比赛，手机扫码变身手柄，双人对战 |
 | **公网联机** | 6 位房间码邀请好友，支持双方直接操控或各自配对手机手柄 |
+
+> **公网联机部署说明**：公网联机使用 Cloudflare 中继（`animal-cup-online.linyuan.uk`）和
+> 公网页面（`animal-cup.linyuan.uk`），构建时通过 `NEXT_PUBLIC_APP_URL` /
+> `NEXT_PUBLIC_ONLINE_SERVICE_URL` 注入（已配置于 CI 与 `.env.local`）。
+> 桌面版默认连接公网中继，邀请链接为公网地址；未配置时回退到局域网中继。
+> 重新部署中继：`pnpm deploy:online`；重新部署网页版：`pnpm build:worker && wrangler deploy`。
 
 ### 🏗 桌面应用架构
 
@@ -105,7 +114,7 @@ Animal Cup 灵感来自经典街机足球游戏。从 8 支动物国家队中选
 | 公网服务 | Cloudflare Workers · Durable Objects |
 | 构建 | pnpm · CI (GitHub Actions) |
 | 测试 | Playwright (E2E) + 命令行协议验证 |
-| 国际化 | 内置多语言 (`app/i18n/`) |
+| 国际化 | 内置多语言 (`app/i18n/`) — 中英完整，日/西/葡/法部分（缺失键回退英文） |
 | 音频 | ElevenLabs 动物音效 |
 
 ### 📂 项目结构
@@ -177,8 +186,8 @@ pnpm desktop:dir
 GitHub Releases：
 
 ```bash
-git tag v0.1.1
-git push origin v0.1.1
+git tag v0.2.0
+git push origin v0.2.0
 ```
 
 **公网房间服务**（可选，仅公网联机需要）：
@@ -191,6 +200,7 @@ pnpm deploy:online     # 部署 Durable Objects 到 Cloudflare
 
 | 命令 | 说明 |
 | --- | --- |
+| `pnpm test:shared` | 联机协议校验逻辑单测（房间码/配置/输入清洗/开局条件） |
 | `pnpm test:online` | 公网房间协议验证（命令行） |
 | `pnpm test:online:browser` | Chrome E2E：双屏、触控、手柄、画布（Playwright） |
 
@@ -232,6 +242,10 @@ Get the latest version from
 | **Windows** | `Animal-Cup-Setup-{version}.exe` |
 | **Linux** | `Animal-Cup-{version}.AppImage` |
 
+> **Unsigned macOS builds**: releases are not Apple-signed/notarized yet — on
+> first open, right-click (or Control-click) the icon → “Open”. CI signing can
+> be configured once a Developer ID certificate is available.
+
 The app checks for updates every 4 hours (electron-updater + GitHub Releases).
 No manual upgrades needed.
 
@@ -243,6 +257,14 @@ No manual upgrades needed.
 | **Play (solo)** | Control one player with keyboard/touch against an AI team |
 | **LAN multiplayer** | Big screen runs the match, phones become wireless gamepads via QR code |
 | **Online multiplayer** | 6-character room codes — direct controls or phone controllers on each side |
+
+> **Online multiplayer deployment**: the desktop build connects to the public
+> Cloudflare relay (`animal-cup-online.linyuan.uk`) and invite links point at
+> the public app (`animal-cup.linyuan.uk`), injected at build time via
+> `NEXT_PUBLIC_APP_URL` / `NEXT_PUBLIC_ONLINE_SERVICE_URL` (configured in CI
+> and `.env.local`). Without config, it falls back to the LAN relay.
+> Re-deploy the relay: `pnpm deploy:online`. Re-deploy the web app:
+> `pnpm build:worker && wrangler deploy`.
 
 ### 🏗 Architecture
 
@@ -290,7 +312,7 @@ No manual upgrades needed.
 | Online service | Cloudflare Workers · Durable Objects |
 | Build | pnpm · CI (GitHub Actions) |
 | Testing | Playwright (E2E) + CLI protocol verification |
-| i18n | Built-in multi-language (`app/i18n/`) |
+| i18n | Built-in multi-language (`app/i18n/`) — zh/en complete, ja/es/pt/fr partial (missing keys fall back to English) |
 | Audio | ElevenLabs animal sound effects |
 
 ### 📂 Project Structure
@@ -363,8 +385,8 @@ pnpm desktop:dir
 platforms in parallel → publishes to GitHub Releases:
 
 ```bash
-git tag v0.1.1
-git push origin v0.1.1
+git tag v0.2.0
+git push origin v0.2.0
 ```
 
 **Online room service** (optional, only needed for online multiplayer):
@@ -377,6 +399,7 @@ pnpm deploy:online     # Deploy Durable Objects to Cloudflare
 
 | Command | Description |
 | --- | --- |
+| `pnpm test:shared` | Unit checks for shared protocol validation (room code / config / input sanitize / start rules) |
 | `pnpm test:online` | Online room protocol verification (CLI) |
 | `pnpm test:online:browser` | Chrome E2E: dual screens, touch, controllers, canvas (Playwright) |
 
