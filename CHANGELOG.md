@@ -1,14 +1,23 @@
 # Changelog
 
+## 0.2.3 — 2026-08-05
+
+### 🐛 修复
+
+- **sync-fixtures 同一队伍一轮踢两场**:剔除已用对阵后直接切片分组,不同轮次的配对被拼进同一轮(如 r3 同时出现 `england-usa` 与 `usa-germany`,usa 一轮踢两场),违反循环赛"每轮每队一场"约束。修复:贪心匹配分组,每轮用 busy 集合保证队伍不重复。
+- **sync-fixtures 赛程尾部丢场次**:新增轮数按 `ceil(剩余场次/4)` 预估,但历史对阵会卡位配对图(如 `fra-arg` 已踢),导致某些轮取不满 4 场,最后 1 场被轮数上限截断丢弃(18 场只生成 17)。修复:默认补完所有剩余对阵为止,仅显式 `--rounds` 时截断。
+- **sync-fixtures import 副作用写盘**:模块被 `import()` 加载时即执行 `main()` 重写数据文件(调试/测试场景易触发)。修复:增加 `import.meta.url` 直接执行守卫,被导入时不写盘。
+- **sync-fixtures --check 文案误导**:check 模式输出 "kept/new rounds" 像文件已被修改。修复:改为 dry-run 语气("check ok — N rounds valid, would add M rounds")。
+
+### ⚙️ 工程
+
+- **赛程同步脚本**:新增 `script/sync-fixtures.mjs`(`pnpm fixtures` / `pnpm fixtures:check`),补齐 `fixtures.json` 注释中承诺的同步工具——校验数据结构、用轮转法生成 8 队循环赛剩余对阵并增量追加(保留已完赛比分与已公布开球时间),`--check` 只校验(CI 可用)、`--reset` 干净重建 7 轮。
+
 ## 0.2.2 — 2026-08-04
 
 ### 🐛 修复
 
 - **桌面窗口无法拖动/无控制按钮**:`preload.mjs` 使用 ESM `import`,而 Electron 20+ 默认 `sandbox: true` 的渲染进程没有 ESM 上下文(sandboxed preload 只能用 `require('electron')`)→ preload 加载失败 → 自定义标题栏(`-webkit-app-region: drag`)从未注入 → 无边框窗口拖不动、最小化/最大化/关闭按钮全部缺失。修复:preload 改为 CommonJS(`electron/preload.cjs`),`main.mjs` 路径同步更新;sandbox 保持默认开启,不引入渲染进程 RCE 风险面。
-
-### ⚙️ 工程
-
-- **赛程同步脚本**:新增 `script/sync-fixtures.mjs`(`pnpm fixtures` / `pnpm fixtures:check`),补齐 `fixtures.json` 注释中承诺的同步工具——校验数据结构、用轮转法生成 8 队循环赛剩余对阵并增量追加(保留已完赛比分与已公布开球时间),`--check` 只校验(CI 可用)、`--reset` 干净重建 7 轮。
 
 ## 0.2.1 — 2026-08-04
 
