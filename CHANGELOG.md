@@ -6,6 +6,10 @@
 
 - **桌面窗口无法拖动/无控制按钮**:`preload.mjs` 使用 ESM `import`,而 Electron 20+ 默认 `sandbox: true` 的渲染进程没有 ESM 上下文(sandboxed preload 只能用 `require('electron')`)→ preload 加载失败 → 自定义标题栏(`-webkit-app-region: drag`)从未注入 → 无边框窗口拖不动、最小化/最大化/关闭按钮全部缺失。修复:preload 改为 CommonJS(`electron/preload.cjs`),`main.mjs` 路径同步更新;sandbox 保持默认开启,不引入渲染进程 RCE 风险面。
 
+### ⚙️ 工程
+
+- **赛程同步脚本**:新增 `script/sync-fixtures.mjs`(`pnpm fixtures` / `pnpm fixtures:check`),补齐 `fixtures.json` 注释中承诺的同步工具——校验数据结构、用轮转法生成 8 队循环赛剩余对阵并增量追加(保留已完赛比分与已公布开球时间),`--check` 只校验(CI 可用)、`--reset` 干净重建 7 轮。
+
 ## 0.2.1 — 2026-08-04
 
 ### 🐛 修复

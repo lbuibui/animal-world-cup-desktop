@@ -13,6 +13,8 @@
     "test:online": "node script/verify-online-relay.mjs",
     "test:shared": "node script/verify-shared.mjs",
     "test:online:browser": "node script/verify-online-browser.mjs",
+    "fixtures": "node script/sync-fixtures.mjs",
+    "fixtures:check": "node script/sync-fixtures.mjs --check",
     "deploy:online": "wrangler deploy -c wrangler-online.toml",
     "prebuild": "rm -rf .next",
     "build": "node script/stamp-sw-version.mjs && next build",
